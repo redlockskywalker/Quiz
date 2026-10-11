@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Робототехника және өнеркәсіптік емес секторлар - Тест</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --correct: #10b981;
+            --incorrect: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            margin: 20px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            color: #6b7280;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #ede9fe;
+            border-color: var(--primary);
+        }
+
+        .option-btn.correct {
+            background: #d1fae5;
+            border-color: var(--correct);
+            color: #065f46;
+        }
+
+        .option-btn.incorrect {
+            background: #fee2e2;
+            border-color: var(--incorrect);
+            color: #991b1b;
+        }
+
+        .next-btn {
+            margin-top: 25px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .next-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .result-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .result-screen h2 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .score-badge {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #374151;
+        }
+
+        .restart-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="quiz-screen">
+        <h1>Өнеркәсіптік емес секторлардағы роботтар</h1>
+        <div class="quiz-header">
+            <span id="question-counter">Сұрақ: 1 / 30</span>
+            <span id="score-counter">Ұпай: 0</span>
+        </div>
+        <div class="question-text" id="question">Сұрақ жүктелуде...</div>
+        <div class="options-grid" id="options"></div>
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Келесі сұрақ</button>
+    </div>
+
+    <div class="result-screen" id="result-screen">
+        <h2>Тест аяқталды! 🎉</h2>
+        <div class="score-badge" id="final-score">Сіздің нәтижеңіз: 0 / 30</div>
+        <button class="restart-btn" onclick="restartQuiz()">Қайта бастау</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            question: "Роботтарды өнеркәсіптік емес салаларда пайдалану негізінен неге бағытталған?",
+            options: [
+                "Адам өмірінің түрлі аспектілерін жақсарту және оңтайландыру",
+                "Тек ауыр металл өндіруге",
+                "Ғарыштық нысандарды жоюға",
+                "Мұнай өндіру көлемін арттыруға"
+            ],
+            correct: 0
+        },
+        {
+            question: "Қонақ үйлерде роботтар қандай жұмыстарды атқара алады?",
+            options: [
+                "Ауыр жүк көліктерін жөндеу",
+                "Қонақтарды қабылдау, багажды жеткізу, бөлмелерді тазалау",
+                "Егін жинау және суару",
+                "Жер асты зерттеулерін жүргізу"
+            ],
+            correct: 1
+        },
+        {
+            question: "Мейрамханаларда робот-бармендер мен сауықтырушылар не істей алады?",
+            options: [
+                "Автомобиль бөлшектерін құрастыру",
+                "Тапсырыстарды қабылдау, тағамды жеткізу немесе тамақ дайындауда көмектесу",
+                "Шахмат ойынынан әлем чемпиону болу",
+                "Ғарышқа ұшу"
+            ],
+            correct: 1
+        },
+        {
+            question: "Сауда орталықтарындағы роботтардың қызметіне не кірмейді?",
+            options: [
+                "Сатып алушыларға көмек көрсету",
+                "Ақпарат беру және төлемдер қабылдау",
+                "Адам трафигін реттеу",
+                "Күрделі хирургиялық операциялар жасау"
+            ],
+            correct: 3
+        },
+        {
+            question: "Қарттар мен мүгедектерге көмек көрсету роботтары қандай функцияларды атқарады?",
+            options: [
+                "Медбикелік қызметтер көрсету, дәрі-дәрмектерді жеткізу",
+                "Өрт сөндіру және миналардан тазарту",
+                "Әскери операциялар жүргізу",
+                "Құрылыс жұмыстарын жүргізу"
+            ],
+            correct: 0
+        },
+        {
+            question: "Хирургиялық роботтар операцияларды қалай жүргізуге мүмкіндік береді?",
+            options: [
+                "Тек қолмен бақылау арқылы қателіктермен",
+                "Жоғары дәлдікпен және аз инвазиялық процедуралар арқылы",
+                "Бағдарламасыз хаотикалық түрде",
+                "Электр қуатын азайту арқылы"
+            ],
+            correct: 1
+        },
+        {
+            question: "Мүгедектер мен жарақат алған адамдардың қозғалыс қабілетін қалпына келтіру үшін қандай роботтар қолданылады?",
+            options: [
+                "Хирургиялық роботтар",
+                "Реабилитациялау роботтары",
+                "Әскери дрондар",
+                "Өнеркәсіптік манипуляторлар"
+            ],
+            correct: 1
+        },
+        {
+            question: "Білім беру саласында роботтар оқушыларға қай пәндерді үйретуде көмек көрсетеді?",
+            options: [
+                "Математика, физика, программалау",
+                "Тек тарих және әдебиет",
+                "Тек музыка және сурет",
+                "Аспаздық өнер"
+            ],
+            correct: 0
+        },
+        {
+            question: "Ауыл шаруашылығында автономды роботтар қандай жұмыстарды атқарады?",
+            options: [
+                "Егін жинау, егіс алқаптарын суару, тыңайтқыштарды тарату",
+                "Қонақтарды қарсы алу және багаж тасу",
+                "Театр қойылымдарын көрсету",
+                "Ғарыштан топырақ үлгілерін жинау"
+            ],
+            correct: 0
+        },
+        {
+            question: "Өсімдіктерді бақылау роботтары қандай жүйелермен жабдықталуы мүмкін?",
+            options: [
+                "Музыкалық колонналармен",
+                "Топырақ жағдайын, өсімдік денсаулығын бақылайтын және зиянкестерді анықтайтын жүйелермен",
+                "Видеоойындар ойнайтын консольдермен",
+                "Шаш кесетін құралдармен"
+            ],
+            correct: 1
+        },
+        {
+            question: "Қойма жүйелерінде роботтар қандай қызмет атқарады?",
+            options: [
+                "Тауарларды сұрыптап, тиісті жерлерге тасымалдау",
+                "Операция жасау",
+                "Концерттер ұйымдастыру",
+                "Шөп шабу"
+            ],
+            correct: 0
+        },
+        {
+            question: "Тауарларды қоймадан тасымалдау немесе жеткізу үшін қандай көлік құралдары қолданылуда?",
+            options: [
+                "Автономды көлік құралдары мен дрондар",
+                "Желкенді қайықтар",
+                "Паровоздар",
+                "Велосипедтер"
+            ],
+            correct: 0
+        },
+        {
+            question: "Роботтар басқару түрі бойынша қандай түрлерге бөлінеді?",
+            options: [
+                "Қатты кодталған, бейімделетін бағдарламаланатын, икемді бағдарламаланатын",
+                "Үлкен, орташа, кіші",
+                "Қызыл, жасыл, көк",
+                "Жылдам және баяу"
+            ],
+            correct: 0
+        },
+        {
+            question: "Жұмыс кезінде өзгермейтін бағдарлама арқылы басқарылатын бірінші буын құрылғылары қалай аталады?",
+            options: [
+                "Бейімделетін",
+                "Икемді бағдарламаланатын",
+                "Қатты кодталған",
+                "Автономды"
+            ],
+            correct: 2
+        },
+        {
+            question: "Орналастыру бойынша роботтар қалай бөлінеді?",
+            options: [
+                "Стационарлық және ұялы",
+                "Әскери және азаматтық",
+                "Үлкен және шағын",
+                "Ақылы және тегін"
+            ],
+            correct: 0
+        },
+        {
+            question: "Іргетасқа, төбеге немесе жүк көтергіш қабырғаларға орнатылатын роботтар қалай аталады?",
+            options: [
+                "Ұялы роботтар",
+                "Стационарлық роботтар",
+                "Ұшатын дрондар",
+                "Су асты аппараттары"
+            ],
+            correct: 1
+        },
+        {
+            question: "Мақсаты бойынша роботтардың түрлеріне не жатпайды?",
+            options: [
+                "Өнеркәсіптік және медициналық",
+                "Үй шаруашылығы және әскери",
+                "Зерттеу және қауіпсіздікті қамтамасыз ету",
+                "Аспанда ұшатын жұлдыздар"
+            ],
+            correct: 3
+        },
+        {
+            question: "Тасымалдау түрі бойынша роботтардың қозғалу әдістеріне қайсысы кіреді?",
+            options: [
+                "Жер асты, су асты, беткей, жер, ұшу",
+                "Тек ғарыштық орбита",
+                "Тек рельсті жүйе",
+                "Интернет желісі арқылы"
+            ],
+            correct: 0
+        },
+        {
+            question: "Тұрмыстық роботтарға мысал ретінде нені атауға болады?",
+            options: [
+                "Шөп шапқыштар, шаңсорғыштар, бассейн тазалағыштар",
+                "Хирургиялық манипуляторлар",
+                "Әскери дрондар",
+                "Өнеркәсіптік дәнекерлеушілер"
+            ],
+            correct: 0
+        },
+        {
+            question: "2017 жылы Оңтүстік Кореяда медициналық роботтың көмегімен қай жерге сәтті операция жасалды?",
+            options: [
+                "Жүрекке",
+                "Асқазанға",
+                "Миға",
+                "Өкпеге"
+            ],
+            correct: 1
+        },
+        {
+            question: "Байланыс үшін жасалған, поэзия оқи алатын, театрландырылған көріністерді сахналайтын робот қалай аталады?",
+            options: [
+                "Thespian роботы",
+                "RoboCop",
+                "Asimo",
+                "Terminator"
+            ],
+            correct: 0
+        },
+        {
+            question: "Роботтандырудың теріс салдарын көрсетіңіз:",
+            options: [
+                "Жұмыссыздықтың өсуі және компьютерлік жүйеге тәуелділік",
+                "Өнім сапасының артуы",
+                "Өндірістік қателіктердің азаюы",
+                "Жарақат алу қаупінің төмендеуі"
+            ],
+            correct: 0
+        },
+        {
+            question: "Роботтарды қолданудың пайдасына қайсысы жатады?",
+            options: [
+                "Өндірілетін өнімнің сапасын арттыру және шығындарды азайту",
+                "Жұмыссыздықты күрт арттыру",
+                "Бағдарлама қателіктерін көбейту",
+                "Адамдардың қауіпті аймақта жұмыс істеуін міндеттеу"
+            ],
+            correct: 0
+        },
+        {
+            question: "Роботтандыру әлемге қандай халықтық проблеманы жеңуге көмектеседі?",
+            options: [
+                "Халықтың қартаю проблемасын",
+                "Жасөспірімдердің спортпен шұғылдануын",
+                "Қалалық көлік кептелісін",
+                "Жергілікті ауа райының өзгеруін"
+            ],
+            correct: 0
+        },
+        {
+            question: "Мәтінде аталған балаларға арналған робототехника мектебі қалай аталады?",
+            options: [
+                "Roboschool мектебі",
+                "IT-Academy",
+                "Smart Kids",
+                "TechnoLab"
+            ],
+            correct: 0
+        },
+        {
+            question: "Бейімделетін бағдарламаланатын роботтар жұмыс режимін не арқылы өзгертеді?",
+            options: [
+                "Сенсорлық жүйені пайдалана отырып, сыртқы әлемнің күйін тану арқылы",
+                "Қолмен қайта бөлшектеу арқылы",
+                "Тек электр тоғын өшіру арқылы",
+                "Кездейсоқ қателіктер арқылы"
+            ],
+            correct: 0
+        },
+        {
+            question: "Қауіпсіздікті қамтамасыз ету үшін Төтенше жағдайлар министрлігі роботтарды қай кезде пайдаланады?",
+            options: [
+                "Өртті, су тасқынын сөндіру, миналардан тазарту және адамдарды құтқару кезінде",
+                "Мейрамханаларда тапсырыс қабылдағанда",
+                "Мектепте математика сабағын өткізгенде",
+                "Сауда орталығында тауар сатқанда"
+            ],
+            correct: 0
+        },
+        {
+            question: "Зерттеу роботтары қай жерлерде жұмыс істей алады?",
+            options: [
+                "Су астында, жер астында және ғарышта",
+                "Тек үйдегі ас үйде",
+                "Тек кеңсе ішінде",
+                "Тек ойын-сауық саябақтарында"
+            ],
+            correct: 0
+        },
+        {
+            question: "Ойын-сауық индустриясындағы роботтарды дамытудың шыңы болып табылатын құрылғы түрі:",
+            options: [
+                "Гуманоид типті құрылғылар",
+                "Төрт аяқты робот-иттер ғана",
+                "Ұшатын текшелер",
+                "Рельсті арбалар"
+            ],
+            correct: 0
+        },
+        {
+            question: "Көрсетілген әдебиеттер тізіміндегі негізгі микроконтроллер платформасы қалай аталады?",
+            options: [
+                "Arduino",
+                "Raspberry Pi Zero",
+                "MacBook Pro",
+                "Windows 11"
+            ],
+            correct: 0
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    const questionCounter = document.getElementById('question-counter');
+    const scoreCounter = document.getElementById('score-counter');
+    const questionElement = document.getElementById('question');
+    const optionsElement = document.getElementById('options');
+    const nextBtn = document.getElementById('next-btn');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const finalScore = document.getElementById('final-score');
+
+    function loadQuestion() {
+        answered = false;
+        nextBtn.style.display = 'none';
+        
+        let currentQuestion = quizData[currentQuestionIndex];
+        questionCounter.innerText = `Сұрақ: ${currentQuestionIndex + 1} / ${quizData.length}`;
+        scoreCounter.innerText = `Ұпай: ${score}`;
+        questionElement.innerText = currentQuestion.question;
+
+        optionsElement.innerHTML = '';
+        currentQuestion.options.forEach((option, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = option;
+            btn.onclick = () => selectOption(index, btn);
+            optionsElement.appendChild(btn);
+        });
+    }
+
+    function selectOption(selectedIndex, selectedBtn) {
+        if (answered) return;
+        answered = true;
+
+        let currentQuestion = quizData[currentQuestionIndex];
+        const allButtons = optionsElement.getElementsByClassName('option-btn');
+
+        if (selectedIndex === currentQuestion.correct) {
+            selectedBtn.classList.add('correct');
+            score++;
+            scoreCounter.innerText = `Ұпай: ${score}`;
+        } else {
+            selectedBtn.classList.add('incorrect');
+            allButtons[currentQuestion.correct].classList.add('correct');
+        }
+
+        Array.from(allButtons).forEach(btn => btn.disabled = true);
+        nextBtn.style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        quizScreen.style.display = 'none';
+        resultScreen.style.display = 'block';
+        finalScore.innerText = `Сіздің нәтижеңіз: ${score} / ${quizData.length}`;
+    }
+
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        quizScreen.style.display = 'block';
+        resultScreen.style.display = 'none';
+        loadQuestion();
+    }
+
+    // Бастапқы жүктеу
+    loadQuestion();
+</script>
+
+</body>
+</html>
