@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Робототехника және өнеркәсіптік емес секторлар - Тест</title>
+    <title>Робототехника және өнеркәсіптік емес секторлар - Нәтижелер</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -20,7 +20,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -29,16 +29,16 @@
 
         .container {
             width: 100%;
-            max-width: 700px;
+            max-width: 800px;
             background: var(--card-bg);
             padding: 30px;
             border-radius: 16px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            margin: 20px;
+            margin: 20px 0;
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: var(--primary);
             text-align: center;
             margin-bottom: 20px;
@@ -112,23 +112,87 @@
             background: var(--primary-hover);
         }
 
+        /* Дэшборд стильдері */
         .result-screen {
-            text-align: center;
             display: none;
         }
 
-        .result-screen h2 {
-            font-size: 2rem;
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .dashboard-header h2 {
+            font-size: 1.8rem;
             color: var(--primary);
             margin-bottom: 10px;
         }
 
-        .score-badge {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin: 20px 0;
-            color: #374151;
+        .stats-cards {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
         }
+
+        .stat-card {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .stat-card.total { background: var(--primary); }
+        .stat-card.correct { background: var(--correct); }
+        .stat-card.incorrect { background: var(--incorrect); }
+
+        .stat-card span {
+            display: block;
+            font-size: 1.5rem;
+            margin-top: 5px;
+        }
+
+        .review-list {
+            max-height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-right: 5px;
+        }
+
+        .review-item {
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .review-item.is-correct {
+            border-left: 5px solid var(--correct);
+        }
+
+        .review-item.is-incorrect {
+            border-left: 5px solid var(--incorrect);
+        }
+
+        .review-question {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .review-answer {
+            font-size: 0.95rem;
+            margin: 4px 0;
+        }
+
+        .review-answer span {
+            font-weight: 600;
+        }
+
+        .user-ans { color: #4b5563; }
+        .correct-ans { color: var(--correct); }
 
         .restart-btn {
             background: var(--primary);
@@ -138,7 +202,13 @@
             font-size: 1rem;
             border-radius: 8px;
             cursor: pointer;
+            width: 100%;
             margin-top: 20px;
+            transition: background 0.2s;
+        }
+
+        .restart-btn:hover {
+            background: var(--primary-hover);
         }
     </style>
 </head>
@@ -146,7 +216,7 @@
 
 <div class="container">
     <div id="quiz-screen">
-        <h1>Өнеркәсіптік емес секторлардағы роботтар</h1>
+        <h1>Дәріс №7: Өнеркәсіптік емес секторлардағы роботтар</h1>
         <div class="quiz-header">
             <span id="question-counter">Сұрақ: 1 / 30</span>
             <span id="score-counter">Ұпай: 0</span>
@@ -157,9 +227,32 @@
     </div>
 
     <div class="result-screen" id="result-screen">
-        <h2>Тест аяқталды! 🎉</h2>
-        <div class="score-badge" id="final-score">Сіздің нәтижеңіз: 0 / 30</div>
-        <button class="restart-btn" onclick="restartQuiz()">Қайта бастау</button>
+        <div class="dashboard-header">
+            <h2>Тест нәтижелері 📊</h2>
+            <p>Барлық сұрақтар бойынша талдау және статистика</p>
+        </div>
+
+        <div class="stats-cards">
+            <div class="stat-card total">
+                Барлығы
+                <span id="stat-total">30</span>
+            </div>
+            <div class="stat-card correct">
+                Дұрыс
+                <span id="stat-correct">0</span>
+            </div>
+            <div class="stat-card incorrect">
+                Қате
+                <span id="stat-incorrect">0</span>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 10px; font-size: 1.1rem;">Жауаптар тізімі:</h3>
+        <div class="review-list" id="review-list">
+            <!-- JavaScript арқылы толтырылады -->
+        </div>
+
+        <button class="restart-btn" onclick="restartQuiz()">Тестті қайта бастау</button>
     </div>
 </div>
 
@@ -470,6 +563,7 @@
     let currentQuestionIndex = 0;
     let score = 0;
     let answered = false;
+    let userAnswers = [];
 
     const questionCounter = document.getElementById('question-counter');
     const scoreCounter = document.getElementById('score-counter');
@@ -478,7 +572,6 @@
     const nextBtn = document.getElementById('next-btn');
     const quizScreen = document.getElementById('quiz-screen');
     const resultScreen = document.getElementById('result-screen');
-    const finalScore = document.getElementById('final-score');
 
     function loadQuestion() {
         answered = false;
@@ -506,7 +599,8 @@
         let currentQuestion = quizData[currentQuestionIndex];
         const allButtons = optionsElement.getElementsByClassName('option-btn');
 
-        if (selectedIndex === currentQuestion.correct) {
+        let isCorrect = (selectedIndex === currentQuestion.correct);
+        if (isCorrect) {
             selectedBtn.classList.add('correct');
             score++;
             scoreCounter.innerText = `Ұпай: ${score}`;
@@ -514,6 +608,13 @@
             selectedBtn.classList.add('incorrect');
             allButtons[currentQuestion.correct].classList.add('correct');
         }
+
+        userAnswers.push({
+            question: currentQuestion.question,
+            userAnswer: currentQuestion.options[selectedIndex],
+            correctAnswer: currentQuestion.options[currentQuestion.correct],
+            isCorrect: isCorrect
+        });
 
         Array.from(allButtons).forEach(btn => btn.disabled = true);
         nextBtn.style.display = 'block';
@@ -524,25 +625,42 @@
         if (currentQuestionIndex < quizData.length) {
             loadQuestion();
         } else {
-            showResult();
+            showDashboard();
         }
     }
 
-    function showResult() {
+    function showDashboard() {
         quizScreen.style.display = 'none';
         resultScreen.style.display = 'block';
-        finalScore.innerText = `Сіздің нәтижеңіз: ${score} / ${quizData.length}`;
+
+        document.getElementById('stat-total').innerText = quizData.length;
+        document.getElementById('stat-correct').innerText = score;
+        document.getElementById('stat-incorrect').innerText = quizData.length - score;
+
+        const reviewList = document.getElementById('review-list');
+        reviewList.innerHTML = '';
+
+        userAnswers.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = `review-item ${item.isCorrect ? 'is-correct' : 'is-incorrect'}`;
+            div.innerHTML = `
+                <div class="review-question">${index + 1}. ${item.question}</div>
+                <div class="review-answer user-ans">Сіздің жауабыңыз: <span>${item.userAnswer}</span></div>
+                ${!item.isCorrect ? `<div class="review-answer correct-ans">Дұрыс жауап: <span>${item.correctAnswer}</span></div>` : ''}
+            `;
+            reviewList.appendChild(div);
+        });
     }
 
     function restartQuiz() {
         currentQuestionIndex = 0;
         score = 0;
+        userAnswers = [];
         quizScreen.style.display = 'block';
         resultScreen.style.display = 'none';
         loadQuestion();
     }
 
-    // Бастапқы жүктеу
     loadQuestion();
 </script>
 
