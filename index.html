@@ -60,23 +60,23 @@ let G;
 function quiz(b,list){
  let items=(list||rng(b)).map(q=>{let idx=[0,1,2,3,4];if(S.shuffle)idx=sh(idx);return{q,idx}});
  if(S.shuffle)items=sh(items);
- G={b,items,i:0,ok:0,wrong:[],done:false,fast:items.length==150};ask()}
+ G={b,items,i:0,ok:0,wrong:[],done:false,fast:items.length==150,total:items.length};ask()}
 function ask(){
  const it=G.items[G.i];
- let h=`<div class="top"><button class="btn s" onclick="${G.fast?FB+'()':'blk('+G.b+')'}">✕ Выйти</button><span class="mu">${G.i+1} / ${G.items.length} · ✔ ${G.ok}</span></div><div class="pb"><i style="width:${G.i/G.items.length*100}%"></i></div><div class="q"><p>${it.q.n}. ${esc(it.q.q)}</p>`;
+ let h=`<div class="top"><button class="btn s" onclick="${G.home?'home()':G.fast?FB+'()':'blk('+G.b+')'}">✕ Выйти</button><span class="mu">${G.i+1} / ${G.items.length} · ✔ ${G.ok}</span></div><div class="pb"><i style="width:${G.i/G.items.length*100}%"></i></div><div class="q"><p>${it.q.n}. ${esc(it.q.q)}${it.retry?' <span style="color:#eab308;font-weight:700">(повторный)</span>':''}</p>`;
  it.idx.forEach((k,pos)=>{h+=`<button class="o" onclick="pick(${pos})"><span>${L[pos]})</span><span>${esc(it.q.o[k])}</span></button>`});
  $.innerHTML=h+'</div><div id="nx"></div>';window.scrollTo(0,0)}
 function pick(pos){
  if(G.done)return;G.done=true;const it=G.items[G.i];const bs=document.querySelectorAll('.o');
  it.idx.forEach((k,p)=>{if(k==0)bs[p].classList.add('ok')});
- if(it.idx[pos]==0)G.ok++;else{bs[pos].classList.add('no');G.wrong.push(it.q)}
+ if(it.idx[pos]==0){if(!it.retry)G.ok++}else{bs[pos].classList.add('no');if(!it.retry)G.wrong.push(it.q);G.items.splice(Math.min(G.i+4,G.items.length),0,{q:it.q,idx:S.shuffle?sh([0,1,2,3,4]):[0,1,2,3,4],retry:true})}
  const last=G.i==G.items.length-1;
  document.getElementById('nx').innerHTML=`<button class="btn" onclick="nxt()">${last?'Результат':'Дальше →'}</button>`}
 function nxt(){G.done=false;G.i++;G.i<G.items.length?ask():fin()}
 function fin(){
- const p=Math.round(G.ok/G.items.length*100);
- if(G.items.length==50||G.items.length==rng(G.b).length){const o=st.get('best'+G.b);if(o==null||p>o)st.set('best'+G.b,p)}
- let h=`<div class="q" style="text-align:center"><h2>Готово!</h2><div class="big">${G.ok} / ${G.items.length}</div><div class="mu">${p}%</div></div><div class="row">`;
+ const p=Math.round(G.ok/G.total*100);
+ if(G.total==50&&!G.home){const o=st.get('best'+G.b);if(o==null||p>o)st.set('best'+G.b,p)}
+ let h=`<div class="q" style="text-align:center"><h2>Готово!</h2><div class="big">${G.ok} / ${G.total}</div><div class="mu">${p}%</div></div><div class="row">`;
  h+=`<button class="btn" onclick="quiz(${G.b})">Пройти заново</button>`;
  if(G.wrong.length)h+=`<button class="btn s" onclick="quiz(${G.b},G.wrong)">Повторить ошибки (${G.wrong.length})</button>`;
  h+=`<button class="btn s" onclick="home()">К блокам</button></div>`;
